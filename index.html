@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#3A7FB8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="島民">
+<meta name="description" content="給滬漂台胞的便民工具——在大陸辦事，少卡 80%。居住證、銀行卡、支付寶綁定、個稅、回台機票，11 張工具卡一鍵搞定。">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<title>神州上的島民｜在大陸辦事，少卡 80%</title>
+<style>
+  :root {
+    --sea: #3A7FB8;
+    --sea-dark: #2A5F8C;
+    --sea-light: rgba(58,127,184,0.06);
+    --sand: #D4A574;
+    --sand-dark: #B08754;
+    --sand-light: rgba(212,165,116,0.08);
+    --cream: #FAF6EF;
+    --ink: #2C2823;
+    --ink-soft: #5F5A52;
+    --line: #E8E0D2;
+    --card-bg: #FFFFFF;
+    --green: #4FAF7A;
+    --red: #D85959;
+    --shadow: 0 2px 12px rgba(60,40,20,0.06);
+    --shadow-lg: 0 8px 32px rgba(60,40,20,0.16);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+  }
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .app {
+    max-width: 460px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: var(--cream);
+  }
+  .screen-wrap { padding: 24px 20px 100px; }
+
+  /* progress dots */
+  .progress { display: flex; gap: 6px; margin-bottom: 28px; }
+  .progress span {
+    flex: 1; height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+  .progress span.active { background: var(--sea); }
+
+  /* screens */
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* typography */
+  h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.3px; }
+  .subtitle { color: var(--ink-soft); font-size: 15px; margin: 0 0 28px; }
+  .hint { color: var(--ink-soft); font-size: 13px; margin: 12px 0 24px; }
+
+  /* options & chips */
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .option {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 12px;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  .option:hover { border-color: var(--sea); }
+  .option.selected {
+    border-color: var(--sea);
+    background: var(--sea-light);
+  }
+  .option .emoji { font-size: 22px; flex-shrink: 0; }
+  .option .text { flex: 1; }
+  .option .desc { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 100px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .chip.selected {
+    border-color: var(--sea);
+    background: var(--sea-light);
+    color: var(--sea-dark);
+    font-weight: 600;
+  }
+
+  /* buttons */
+  .btn {
+    background: var(--sea);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--sea-dark); }
+  .btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--ink-soft); }
+  .btn-sand { background: var(--sand-dark); }
+  .btn-sand:hover { background: var(--sand); }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn { flex: 1; }
+
+  /* inputs */
+  input[type="text"], input[type="date"], textarea {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--sea);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .label { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; display: block; }
+
+  /* 歡迎頁 */
+  .welcome { padding: 60px 0 40px; text-align: center; }
+  .welcome .logo { font-size: 64px; margin-bottom: 16px; }
+  .welcome h1 { font-size: 32px; margin-bottom: 8px; }
+  .welcome .slogan {
+    font-size: 18px;
+    color: var(--sand-dark);
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .welcome .quote {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+
+  /* 我的辦事台 */
+  .home-header {
+    background: linear-gradient(135deg, var(--sea), var(--sand));
+    padding: 28px 20px 32px;
+    color: white;
+    border-radius: 0 0 24px 24px;
+    margin-bottom: 18px;
+  }
+  .home-hello { font-size: 14px; opacity: 0.9; margin: 0 0 4px; }
+  .home-title { font-size: 22px; font-weight: 700; margin: 0 0 14px; }
+  .home-stats {
+    display: flex; gap: 12px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 12px;
+    padding: 12px 14px;
+    backdrop-filter: blur(8px);
+  }
+  .home-stat { flex: 1; }
+  .home-stat-num { font-size: 22px; font-weight: 700; margin: 0; line-height: 1.1; }
+  .home-stat-label { font-size: 11px; opacity: 0.9; margin: 2px 0 0; }
+
+  /* sections */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 24px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title .count {
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* 工具卡列表 */
+  .tool-list {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tool-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tool-card:hover { border-color: var(--sea); }
+  .tool-card.done {
+    background: rgba(79,175,122,0.05);
+    border-color: rgba(79,175,122,0.3);
+  }
+  .tool-card.pinned {
+    background: var(--sand-light);
+    border-color: var(--sand);
+  }
+  .tool-emoji {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: var(--cream);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tool-card.pinned .tool-emoji { background: rgba(255,255,255,0.6); }
+  .tool-info { flex: 1; min-width: 0; }
+  .tool-title { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
+  .tool-meta { font-size: 12px; color: var(--ink-soft); margin: 0; }
+  .tool-progress {
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .tool-progress-bar {
+    height: 100%;
+    background: var(--sea);
+    transition: width 0.3s;
+  }
+  .tool-card.done .tool-progress-bar { background: var(--green); }
+  .tool-status { font-size: 12px; color: var(--ink-soft); flex-shrink: 0; }
+  .tool-status.done { color: var(--green); font-weight: 600; }
+  .reminder-badge {
+    background: var(--sand-dark);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 100px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* 詳細頁 modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    animation: fadeIn 0.2s;
+  }
+  .modal-backdrop.show { display: block; }
+  .modal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 100%);
+    background: var(--cream);
+    border-radius: 24px 24px 0 0;
+    max-height: 92vh;
+    overflow-y: auto;
+    z-index: 1001;
+    transition: transform 0.3s ease;
+    width: 100%;
+    max-width: 460px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .modal.show { transform: translate(-50%, 0); }
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-content { padding: 20px 20px 40px; }
+  .modal-header {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .modal-emoji {
+    font-size: 36px;
+    width: 60px;
+    height: 60px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .modal-title-block { flex: 1; }
+  .modal-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .modal-meta { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: rgba(0,0,0,0.05);
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-section {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1.5px solid var(--line);
+  }
+  .modal-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px;
+  }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--cream);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-check {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: white;
+  }
+  .step.done .step-check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .step.done .step-check::after { content: "✓"; }
+  .step-text { font-size: 15px; flex: 1; }
+  .step.done .step-text {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+  }
+
+  .materials li {
+    font-size: 14px;
+    margin-bottom: 6px;
+    list-style: none;
+    position: relative;
+    padding-left: 22px;
+  }
+  .materials li::before {
+    content: "📎";
+    position: absolute;
+    left: 0;
+  }
+  .materials ul { margin: 0; padding: 0; }
+
+  .tip {
+    background: var(--sand-light);
+    border-left: 3px solid var(--sand);
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .tip:last-child { margin-bottom: 0; }
+
+  .wiki-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cream);
+    font-size: 14px;
+  }
+  .wiki-item:last-child { border-bottom: none; }
+  .wiki-quote { color: var(--ink); margin: 0 0 6px; line-height: 1.5; }
+  .wiki-meta { color: var(--ink-soft); font-size: 12px; }
+  .wiki-mine .wiki-meta::after {
+    content: "（我的補充）";
+    color: var(--sea);
+    font-weight: 600;
+  }
+  .wiki-empty { color: var(--ink-soft); font-size: 13px; padding: 8px 0; }
+  .wiki-form { display: none; }
+  .wiki-form.show { display: block; }
+
+  .fb-bar {
+    background: linear-gradient(90deg, #1877F2, #4267B2);
+    color: white;
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-top: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    display: block;
+  }
+  .fb-bar:hover { opacity: 0.92; }
+
+  .progress-big {
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+    margin: 12px 0 4px;
+    overflow: hidden;
+  }
+  .progress-big-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sea), var(--sand));
+    transition: width 0.4s;
+  }
+
+  /* 緊急聯絡卡 — 直撥電話 */
+  .call-list { display: flex; flex-direction: column; gap: 8px; }
+  .call-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--cream);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.15s;
+  }
+  .call-btn:hover {
+    border-color: var(--red);
+    background: rgba(216,89,89,0.05);
+  }
+  .call-btn .call-emoji { font-size: 22px; }
+  .call-btn .call-info { flex: 1; }
+  .call-btn .call-name { font-size: 14px; font-weight: 600; margin: 0; }
+  .call-btn .call-num { font-size: 12px; color: var(--ink-soft); margin: 2px 0 0; font-family: -apple-system, sans-serif; }
+  .call-btn .call-icon { color: var(--red); font-size: 18px; }
+
+  /* 完成頁慶祝 */
+  .celebration { text-align: center; padding: 40px 0; }
+  .celebration .big-emoji {
+    font-size: 64px;
+    animation: bounce 0.6s ease;
+  }
+
+  /* 矩陣推薦 tip */
+  .matrix-tip {
+    background: var(--card-bg);
+    border: 1.5px dashed var(--sand);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 20px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .matrix-tip-title {
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 6px;
+    font-size: 14px;
+  }
+  .matrix-tip a {
+    color: var(--sea-dark);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dotted var(--sea);
+  }
+
+  /* 提醒設定區塊 */
+  .reminder-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-top: 8px;
+  }
+  .reminder-row > div { flex: 1; }
+  .reminder-row input { margin-bottom: 0; }
+  .reminder-row .btn { width: auto; padding: 14px 16px; font-size: 14px; }
+  .reminder-current {
+    background: var(--sea-light);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .reminder-current strong { color: var(--sea-dark); }
+  .reminder-current .clear {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  /* footer 工具列 */
+  .home-footer {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ver-tag {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 11px;
+    padding: 12px 0 20px;
+    opacity: 0.7;
+  }
+
+  /* PWA install hint */
+  .install-hint {
+    background: var(--sea-light);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin: 0 20px 12px;
+    font-size: 13px;
+    color: var(--ink);
+    display: none;
+    line-height: 1.5;
+  }
+  .install-hint.show { display: block; }
+  .install-hint button {
+    background: var(--sea);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    cursor: pointer;
+  }
+  .install-hint .dismiss {
+    background: none;
+    color: var(--ink-soft);
+    font-size: 11px;
+    margin-left: 0;
+    padding: 4px 6px;
+  }
+
+  /* notification permission */
+  .notif-banner {
+    background: var(--sand-light);
+    border: 1.5px dashed var(--sand);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .notif-banner.hidden { display: none; }
+  .notif-banner button {
+    background: var(--sand-dark);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  @media (display-mode: standalone) {
+    .install-hint { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- 歡迎頁 -->
+  <div class="screen active" id="screen-welcome">
+    <div class="screen-wrap">
+      <div class="welcome">
+        <div class="logo">🏝️</div>
+        <h1>神州上的島民</h1>
+        <div class="slogan">在大陸辦事，少卡 80%</div>
+        <p class="quote">島民必裝的那一張<br>來，就帶這個</p>
+        <button class="btn" onclick="goTo('screen-q1')">開始</button>
+        <p class="hint" style="margin-top: 24px; text-align: center;">3 個問題，30 秒。我們替你準備好你的工具箱。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 問題 1 -->
+  <div class="screen" id="screen-q1">
+    <div class="screen-wrap">
+      <div class="progress"><span class="active"></span><span></span><span></span><span></span></div>
+      <h2>第 1 題 / 4</h2>
+      <h1>你為什麼來大陸？</h1>
+      <p class="subtitle">不一樣的目的，工具箱不一樣。</p>
+      <div class="options" data-question="why">
+        <button class="option" data-value="travel"><span class="emoji">🎒</span><span class="text"><div>來玩</div><div class="desc">旅遊 / 出差 / 探親</div></span></button>
+        <button class="option" data-value="life"><span class="emoji">🏠</span><span class="text"><div>來生活</div><div class="desc">陪伴 / 婚姻 / 探索</div></span></button>
+        <button class="option" data-value="work"><span class="emoji">💼</span><span class="text"><div>來工作</div><div class="desc">外派 / 求職 / 創業</div></span></button>
+        <button class="option" data-value="study"><span class="emoji">🎓</span><span class="text"><div>來唸書</div><div class="desc">交換 / 學位</div></span></button>
+        <button class="option" data-value="think"><span class="emoji">🤔</span><span class="text"><div>還在想</div><div class="desc">不確定要不要 / 怎麼來</div></span></button>
+      </div>
+      <button class="btn" id="btn-q1" disabled onclick="goTo('screen-q2')">繼續</button>
+    </div>
+  </div>
+
+  <!-- 問題 2 -->
+  <div class="screen" id="screen-q2">
+    <div class="screen-wrap">
+      <div class="progress"><span class="active"></span><span class="active"></span><span></span><span></span></div>
+      <h2>第 2 題 / 4</h2>
+      <h1>你現在是？</h1>
+      <p class="subtitle">這會決定有些卡你會看到（或不會）。</p>
+      <div class="options" data-question="role">
+        <button class="option" data-value="student"><span class="emoji">🎓</span><span class="text"><div>學生</div><div class="desc">交換 / 研究生 / 大學</div></span></button>
+        <button class="option" data-value="employee"><span class="emoji">💼</span><span class="text"><div>上班族</div><div class="desc">外商 / 中資 / 國企</div></span></button>
+        <button class="option" data-value="founder"><span class="emoji">🚀</span><span class="text"><div>創業者 / 自由業</div></span></button>
+        <button class="option" data-value="family"><span class="emoji">🏠</span><span class="text"><div>陪伴者</div><div class="desc">陪配偶 / 陪子女 / 陪父母</div></span></button>
+        <button class="option" data-value="gap"><span class="emoji">🌿</span><span class="text"><div>Gap / 退休 / 在想下一步</div></span></button>
+        <button class="option" data-value="planning"><span class="emoji">🛬</span><span class="text"><div>還沒來，準備中</div></span></button>
+      </div>
+      <button class="btn" id="btn-q2" disabled onclick="goTo('screen-q3')">繼續</button>
+    </div>
+  </div>
+
+  <!-- 問題 3 -->
+  <div class="screen" id="screen-q3">
+    <div class="screen-wrap">
+      <div class="progress"><span class="active"></span><span class="active"></span><span class="active"></span><span></span></div>
+      <h2>第 3 題 / 4</h2>
+      <h1>你來多久了？</h1>
+      <p class="subtitle">剛來的人推「前 30 天 checklist」，老島民只推年審。</p>
+      <div class="options" data-question="duration">
+        <button class="option" data-value="not_yet"><span class="emoji">⏳</span><span class="text"><div>還沒來</div><div class="desc">計劃中</div></span></button>
+        <button class="option" data-value="0_6m"><span class="emoji">🌱</span><span class="text"><div>0–6 個月</div><div class="desc">新島民</div></span></button>
+        <button class="option" data-value="6m_2y"><span class="emoji">🌿</span><span class="text"><div>6 個月–2 年</div></span></button>
+        <button class="option" data-value="2_5y"><span class="emoji">🌳</span><span class="text"><div>2–5 年</div></span></button>
+        <button class="option" data-value="5_10y"><span class="emoji">🌲</span><span class="text"><div>5–10 年</div></span></button>
+        <button class="option" data-value="10y_plus"><span class="emoji">🏔</span><span class="text"><div>10 年以上</div><div class="desc">老島民</div></span></button>
+      </div>
+      <button class="btn" id="btn-q3" disabled onclick="goTo('screen-profile')">繼續</button>
+    </div>
+  </div>
+
+  <!-- 補資料 -->
+  <div class="screen" id="screen-profile">
+    <div class="screen-wrap">
+      <div class="progress"><span class="active"></span><span class="active"></span><span class="active"></span><span class="active"></span></div>
+      <h2>最後一步</h2>
+      <h1>怎麼稱呼你？</h1>
+      <p class="subtitle">只用來顯示在工具卡的補充欄。本機儲存，不上傳伺服器。</p>
+
+      <label class="label">暱稱（2-10 字）</label>
+      <input type="text" id="nick" maxlength="10" placeholder="例：小美 / 阿凱 / 老王" oninput="checkProfile()">
+
+      <label class="label">在 / 想去哪個區？</label>
+      <div class="chips" data-question="district">
+        <span class="chip" data-value="徐匯">徐匯</span>
+        <span class="chip" data-value="靜安">靜安</span>
+        <span class="chip" data-value="長寧">長寧</span>
+        <span class="chip" data-value="黃浦">黃浦</span>
+        <span class="chip" data-value="浦東">浦東</span>
+        <span class="chip" data-value="虹口">虹口</span>
+        <span class="chip" data-value="楊浦">楊浦</span>
+        <span class="chip" data-value="閔行">閔行</span>
+        <span class="chip" data-value="還在想">還在想</span>
+      </div>
+
+      <button class="btn" id="btn-profile" disabled onclick="generateToolbox()" style="margin-top: 28px;">替我準備工具箱</button>
+    </div>
+  </div>
+
+  <!-- 完成過渡頁 -->
+  <div class="screen" id="screen-transition">
+    <div class="screen-wrap">
+      <div class="celebration">
+        <div class="big-emoji">🎁</div>
+        <h1 style="margin-top: 14px;">你的工具箱準備好了</h1>
+        <p class="subtitle" style="margin-top: 8px;">替你準備了 <strong id="card-count">8</strong> 張工具卡，<br>預計能幫你省下 <strong id="time-saved">47</strong> 小時的踩坑時間。</p>
+        <button class="btn" onclick="goTo('screen-home'); renderHome();" style="margin-top: 32px;">進入我的辦事台 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的辦事台 -->
+  <div class="screen" id="screen-home">
+    <div class="home-header">
+      <p class="home-hello">Hi <span id="home-nick">島民</span>，</p>
+      <p class="home-title">這是你的辦事台</p>
+      <div class="home-stats">
+        <div class="home-stat">
+          <p class="home-stat-num" id="stat-total">8</p>
+          <p class="home-stat-label">總卡片</p>
+        </div>
+        <div class="home-stat">
+          <p class="home-stat-num" id="stat-done">0</p>
+          <p class="home-stat-label">已完成</p>
+        </div>
+        <div class="home-stat">
+          <p class="home-stat-num" id="stat-progress">0%</p>
+          <p class="home-stat-label">總進度</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="install-hint" id="install-hint">
+      <strong>💡 提示：</strong>把這個 app 加到主畫面，就跟一般 app 一樣可離線開、能收提醒。
+      <button onclick="triggerInstall()">安裝</button>
+      <button class="dismiss" onclick="dismissInstall()">略過</button>
+    </div>
+
+    <div class="section-title">🆘 緊急時刻 <span class="count">永遠在</span></div>
+    <div class="tool-list" id="pinned-list"></div>
+
+    <div class="section-title">📋 你的工具卡 <span class="count" id="urgent-count"></span></div>
+    <div class="tool-list" id="tools-list"></div>
+
+    <div class="matrix-tip" id="matrix-tip">
+      <!-- JS 動態填入 -->
+    </div>
+
+    <div class="home-footer">
+      <a class="btn btn-ghost" href="https://www.facebook.com/groups/twpeople.shanghai/" target="_blank" rel="noopener" style="text-decoration:none; text-align:center;">💬 跳 FB「台灣人在上海」</a>
+      <button class="btn btn-ghost" onclick="confirmRestart()">重新填一次 Onboarding</button>
+    </div>
+
+    <p class="ver-tag">v0.3.0 · 2026-05-19｜永興手作｜<a href="https://www.facebook.com/groups/twpeople.shanghai/" target="_blank" rel="noopener" style="color:inherit">FB 5 萬人社團 ↗</a></p>
+  </div>
+
+</div>
+
+<!-- 詳細頁 modal -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-handle"></div>
+  <button class="modal-close" onclick="closeModal()" aria-label="關閉">×</button>
+  <div class="modal-content" id="modal-content"></div>
+</div>
+
+<script>
+// ===== 版本 / 常數 =====
+const APP_VERSION = '0.3.0';
+const LS_KEY = 'shenzhou_islander_state_v1';
+const FB_GROUP_URL = 'https://www.facebook.com/groups/twpeople.shanghai/';
+const FB_SEARCH = (q) => `https://www.facebook.com/search/top/?q=${encodeURIComponent(q + ' 台灣人在上海')}`;
+
+// ===== 狀態 =====
+let state = {
+  onboarded: false,
+  why: null, role: null, duration: null, district: null, nick: '',
+  toolStates: {},           // toolId -> { steps: [bool], reminderDate: null, myWiki: [{q, when}] }
+  installDismissed: false,
+  notifAsked: false,
+};
+
+let deferredInstallPrompt = null;
+
+// ===== 持久化 =====
+function saveState() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  } catch(e) { console.warn('localStorage 寫入失敗', e); }
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    state = Object.assign(state, parsed);
+    return state.onboarded === true;
+  } catch(e) { console.warn('localStorage 讀取失敗', e); return false; }
+}
+
+// ===== 工具卡 catalog =====
+const catalog = {
+  sos: {
+    emoji: '🆘', title: '緊急聯絡卡', meta: '永久備用', est: '隨時可看', pinned: true,
+    calls: [
+      { name: '報警', num: '110', emoji: '🚓' },
+      { name: '急救 / 救護車', num: '120', emoji: '🚑' },
+      { name: '火警', num: '119', emoji: '🚒' },
+      { name: '海基會 24h 緊急聯絡（兩岸）', num: '+886-2-2712-9292', emoji: '🇹🇼' },
+      { name: '上海台辦', num: '+86-21-6275-9082', emoji: '🏛' },
+    ],
+    materials: ['手機（沒了的話）', '一張紙抄好（緊急時用）'],
+    tips: [
+      '手機沒電 / 沒網時的紙本備份最重要',
+      '出門攜帶名片大小的緊急卡是基本配備',
+      '長輩 / 第一次來大陸的朋友，建議列印一張放錢包',
+    ],
+    wiki: [
+      { q: '海基會緊急聯絡 +886-2-2712-9292', who: '老王', when: '上個月' },
+      { q: '上海市第一人民醫院（虹口）對台胞友善、有翻譯員', who: 'Mia', when: '2 週前' },
+      { q: '上海有「12345 市民熱線」可諮詢非緊急問題', who: '永興', when: '本週' },
+    ]
+  },
+  rent_doc: {
+    emoji: '🪪', title: '居住證辦理', meta: '徐匯/靜安 · 30-45 天', est: '30-45 天',
+    steps: [
+      '準備材料（見下方）',
+      '請房東到派出所做租賃備案',
+      '帶資料到派出所遞件',
+      '等待制證（7-15 天）',
+      '領證',
+      '設提醒：3 年後年審',
+    ],
+    materials: ['台胞證 + 影本', '房屋租賃合同（網簽版）', '1 寸照 2 張', '房東身份證影本'],
+    tips: [
+      '旺季（9-10 月）會排隊，避開更輕鬆',
+      '徐匯派出所最快、靜安最慢——可以挑',
+      '房東不配合的話，找有經驗的房屋仲介幫忙',
+      '線上預約再去現場，省一半時間',
+    ],
+    wiki: [
+      { q: '2026 年起需要房東本人到場一次', who: '阿凱', when: '上週' },
+      { q: '徐匯派出所搬到漕溪北路了', who: 'Mia', when: '2 週前' },
+      { q: '現在可線上預約，省 1 小時排隊', who: '老王', when: '1 個月前' },
+    ],
+    reminderSuggest: { label: '3 年後年審', months: 36 },
+  },
+  phone: {
+    emoji: '📱', title: '手機卡開戶', meta: '當天搞定', est: '1-2 小時',
+    steps: [
+      '帶台胞證到中國移動 / 聯通營業廳',
+      '選資費套餐（推薦無合約月租）',
+      '辦卡 + 開通',
+      '下載官方 App 管理（中國移動 / 聯通）',
+      '充值',
+    ],
+    materials: ['台胞證 + 影本'],
+    tips: [
+      '中國移動信號最穩、聯通便宜、電信第三',
+      '不要找路邊小店辦，去官方營業廳',
+      '辦完馬上充值，避免被自動停用',
+      '台灣 SIM 別丟，回台還要用',
+    ],
+    wiki: [
+      { q: '中國聯通 19 元月租 + 80G 真的香', who: '小美', when: '3 週前' },
+      { q: '中國移動「動感地帶」適合學生', who: '阿哲', when: '1 個月前' },
+    ]
+  },
+  bank: {
+    emoji: '🏦', title: '銀行卡開戶', meta: '推薦招商 / 中國銀行', est: '1-2 小時',
+    steps: [
+      '帶台胞證 + 居住證到銀行',
+      '填表 + 拍照',
+      '領卡 + 開通網銀',
+      '綁定手機號 + 設定密碼',
+      '下載銀行 App',
+    ],
+    materials: ['台胞證', '居住證（沒有的話帶台胞證也可，但會限額）', '手機號（國內號碼）'],
+    tips: [
+      '招商銀行對台胞最友善、App 最好用',
+      '中國銀行有「台胞專櫃」（少數分行）',
+      '先開二類戶（單日限額 1 萬），之後再升一類戶',
+      '工商銀行外灘支行 / 中國銀行徐匯支行 有台胞專窗',
+    ],
+    wiki: [
+      { q: '工商銀行外灘支行有台胞專窗，效率高', who: '阿傑', when: '1 個月前' },
+      { q: '招商銀行可線上預約再去櫃台，省 30 分鐘', who: '永興', when: '本月' },
+    ]
+  },
+  alipay: {
+    emoji: '💸', title: '支付寶 / 微信支付綁定', meta: '半小時', est: '30 分鐘',
+    steps: [
+      '下載支付寶 + 微信',
+      '註冊（用大陸手機號）',
+      '實名認證（綁台胞證號碼）',
+      '綁定大陸銀行卡',
+      '測試付一杯飲料',
+    ],
+    materials: ['台胞證', '大陸銀行卡', '大陸手機號'],
+    tips: [
+      '台胞證號的「英文字母 + 8 位數」要打對',
+      '微信實名認證比支付寶嚴格，照片要清晰',
+      '兩個都綁，避免某個商家只收一邊',
+      '支付寶可綁台灣信用卡（Tour Pass）給觀光客用',
+    ],
+    wiki: [
+      { q: '微信實名認證審 1-3 天，急用先用支付寶', who: 'Cindy', when: '上週' },
+      { q: 'Tour Pass 限額 2000 RMB，長期住別用', who: '永興', when: '本月' },
+    ]
+  },
+  rent: {
+    emoji: '🏠', title: '租房 + 租賃備案', meta: '1-2 週搞定', est: '1-2 週',
+    steps: [
+      '看房 + 議價',
+      '簽合同（要有甲乙方完整資訊）',
+      '走網簽（線上租賃備案）',
+      '辦租賃備案（派出所，居住證需要）',
+      '搬家',
+    ],
+    materials: ['台胞證', '租賃合同（雙方簽字）', '房屋所有權證影本'],
+    tips: [
+      '網簽合同才能辦居住證——一定要要',
+      '找仲介費 = 半個月房租（可議）',
+      '徐匯 / 靜安老房子很多沒網簽，問清楚再簽',
+      '看房時帶測距 app，自己量比房東說的準',
+    ],
+    wiki: [
+      { q: '貝殼 / 鏈家比小仲介靠譜', who: '志強', when: '3 週前' },
+      { q: '愚園路、永康路、武康路有不少台胞鄰居', who: '永興', when: '本月' },
+    ]
+  },
+  medical: {
+    emoji: '🏥', title: '醫保 / 健保續保', meta: '台胞健保續保攻略', est: '一週',
+    steps: [
+      '檢查台灣健保狀態（停 / 續）',
+      '評估要不要繳續保費（停了 4 個月以上會被停權）',
+      '看是否要保大陸補充醫療',
+      '存好兩岸合作醫院清單',
+    ],
+    materials: ['健保卡', '出境證明'],
+    tips: [
+      '出境超過 4 個月健保會被「停權」',
+      '可以「保留資格」+「補繳」，等回台再啟用',
+      '上海可投保惠民保（百來元 / 年）作為補充',
+      '台胞看上海公立醫院走「自費」，大病前考慮商業保',
+    ],
+    wiki: [
+      { q: '健保停權後回台 2 個月內補繳可恢復', who: 'Mia', when: '1 個月前' },
+      { q: '滬上惠民保 195 元 / 年，性價比高', who: '永興', when: '本月' },
+    ]
+  },
+  tax: {
+    emoji: '🧮', title: '個稅申報（台胞）', meta: '每年 3-6 月', est: '半天',
+    steps: [
+      '確認你是「居民個稅」還是「非居民個稅」',
+      '收集去年薪資 / 獎金 / 房租證明',
+      '在「個人所得稅」App 申報',
+      '繳稅 / 退稅',
+    ],
+    materials: ['台胞證', '去年所得清單', '個人所得稅 App'],
+    tips: [
+      '在大陸住超過 183 天 → 居民個稅，全球所得',
+      '不到 183 天 → 只課大陸所得',
+      '台籍員工有「免稅福利」可申請，問 HR',
+      '租金、子女教育、贍養老人都能扣',
+    ],
+    wiki: [
+      { q: '「個稅 App」介面友善，跟著走就行', who: '阿傑', when: '今年 4 月' },
+      { q: '子女教育扣除 1000/月，記得登記', who: '永興', when: '本月' },
+    ],
+    reminderSuggest: { label: '下次申報季（明年 3 月 1 日）', dateOverride: 'next-march' },
+  },
+  pass_renew: {
+    emoji: '🛂', title: '台胞證換發 / 簽注', meta: '到期前 6 個月辦最佳', est: '15 天',
+    steps: [
+      '查台胞證有效期（5 年）',
+      '查多次簽注有效期（5 年）',
+      '到出入境管理大廳遞件',
+      '取證',
+    ],
+    materials: ['舊台胞證', '近期 2 寸照（白底）', '居住證'],
+    tips: [
+      '到期前 6 個月就可以辦，別拖',
+      '上海出入境大廳（民生路 1500 號）效率高',
+      '可以加急（多 100 元 / 3 天出證）',
+      '台胞證號換新後，支付寶 / 微信都要重新驗證',
+    ],
+    wiki: [
+      { q: '民生路出入境大廳 8 點開門前去最快', who: '永興', when: '本月' },
+    ],
+    reminderSuggest: { label: '5 年後換證', months: 60 },
+  },
+  flight: {
+    emoji: '✈️', title: '回台機票 + 通行證', meta: '證件提醒', est: '5 分鐘',
+    steps: [
+      '設台胞證到期提醒（前 60 / 30 / 14 天）',
+      '設簽注到期提醒',
+      '存常飛航線在收藏',
+      '存常用機場貴賓室資訊',
+    ],
+    materials: ['台胞證', '機票 App（推薦攜程國際版 / Trip.com）'],
+    tips: [
+      '上海 → 桃園 早班便宜 30%',
+      '東航 / 國航有台胞優惠（部分航線）',
+      '上海到桃園的「電子通行證」現在不用紙本了',
+      '虹橋國際航站樓比浦東小、轉乘快',
+    ],
+    wiki: [
+      { q: '虹橋國際航站樓比浦東小、轉乘快', who: 'Cindy', when: '上個月' },
+      { q: '長榮會員台胞用 EVA Sky 比較便宜', who: '永興', when: '本月' },
+    ]
+  },
+  school: {
+    emoji: '🎒', title: '小孩入學（陪伴者）', meta: '帶娃滬漂必備', est: '1-2 個月',
+    steps: [
+      '查戶籍 / 居住證的就學規則',
+      '了解台胞學校 / 國際學校 / 公立 3 種選項',
+      '參觀目標學校',
+      '準備材料 + 申請',
+      '備案',
+    ],
+    materials: ['台胞證', '居住證', '小孩出生證明', '前一學年成績單'],
+    tips: [
+      '上海市台商子女學校（青浦）公認最穩',
+      '公立入學要看「居住地 + 居住年限」',
+      '國際學校學費高但程序簡單',
+      '台胞學校學費約 RMB 8 萬 / 年',
+    ],
+    wiki: [
+      { q: '青浦台校校車覆蓋徐匯 / 長寧', who: '張姐', when: '上學期' },
+    ]
+  }
+};
+
+// ===== 分發邏輯 =====
+function buildToolbox() {
+  let cards = [];
+  const why = state.why, role = state.role, dur = state.duration;
+  if (why === 'travel') {
+    cards = ['sos', 'flight'];
+  } else if (why === 'think' || dur === 'not_yet') {
+    cards = ['sos', 'rent_doc', 'phone', 'bank', 'alipay'];
+  } else if (dur === '5_10y' || dur === '10y_plus') {
+    // 老島民簡化
+    cards = ['sos', 'pass_renew', 'tax', 'flight'];
+  } else {
+    // 來生活 / 工作 / 唸書 → 完整 8-12 張
+    cards = ['sos', 'rent_doc', 'phone', 'bank', 'alipay', 'rent', 'medical', 'flight'];
+  }
+  // 工作 / 創業者加個稅
+  if ((role === 'employee' || role === 'founder') && !cards.includes('tax')) cards.push('tax');
+  // 陪伴者加小孩
+  if (role === 'family' && !cards.includes('school')) cards.push('school');
+  // 過 2 年加換證
+  if ((dur === '2_5y' || dur === '5_10y' || dur === '10y_plus') && !cards.includes('pass_renew')) {
+    cards.push('pass_renew');
+  }
+  // 學生加居住證 + 銀行
+  if (role === 'student') {
+    if (!cards.includes('rent_doc')) cards.push('rent_doc');
+    if (!cards.includes('bank')) cards.push('bank');
+  }
+  return cards;
+}
+
+// ===== 互動 =====
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll('.options').forEach(group => {
+  const q = group.dataset.question;
+  group.querySelectorAll('.option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      group.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      state[q] = opt.dataset.value;
+      if (q === 'why') document.getElementById('btn-q1').disabled = false;
+      if (q === 'role') document.getElementById('btn-q2').disabled = false;
+      if (q === 'duration') document.getElementById('btn-q3').disabled = false;
+    });
+  });
+});
+
+document.querySelectorAll('.chips').forEach(group => {
+  const q = group.dataset.question;
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (q === 'district') {
+        group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        state.district = chip.dataset.value;
+      }
+      checkProfile();
+    });
+  });
+});
+
+function checkProfile() {
+  state.nick = document.getElementById('nick').value.trim();
+  const ok = state.nick.length >= 2 && state.district;
+  document.getElementById('btn-profile').disabled = !ok;
+}
+
+function generateToolbox() {
+  const ids = buildToolbox();
+  ids.forEach(id => {
+    if (!state.toolStates[id]) {
+      state.toolStates[id] = {
+        steps: (catalog[id].steps || []).map(() => false),
+        reminderDate: null,
+        myWiki: []
+      };
+    }
+  });
+  const nonPinned = ids.filter(id => !catalog[id].pinned).length;
+  const hours = nonPinned * 6; // 假估：每張卡省 6 小時
+  document.getElementById('card-count').textContent = ids.length;
+  document.getElementById('time-saved').textContent = hours;
+  state.onboarded = true;
+  saveState();
+  goTo('screen-transition');
+}
+
+function renderHome() {
+  const ids = buildToolbox();
+  const pinned = ids.filter(id => catalog[id].pinned);
+  const tools = ids.filter(id => !catalog[id].pinned);
+
+  document.getElementById('home-nick').textContent = state.nick || '島民';
+  document.getElementById('stat-total').textContent = ids.length;
+
+  const totalSteps = tools.reduce((s, id) => s + (catalog[id].steps?.length || 0), 0);
+  const doneSteps = tools.reduce((s, id) => s + (state.toolStates[id]?.steps || []).filter(Boolean).length, 0);
+  const doneCards = tools.filter(id => {
+    const st = state.toolStates[id]?.steps || [];
+    return st.length > 0 && st.every(Boolean);
+  }).length;
+  document.getElementById('stat-done').textContent = doneCards;
+  document.getElementById('stat-progress').textContent = totalSteps ? Math.round(doneSteps * 100 / totalSteps) + '%' : '0%';
+  document.getElementById('urgent-count').textContent = `${doneCards} / ${tools.length} 完成`;
+
+  document.getElementById('pinned-list').innerHTML = pinned.map(renderToolCard).join('');
+  document.getElementById('tools-list').innerHTML = tools.map(renderToolCard).join('');
+  document.getElementById('matrix-tip').innerHTML = buildMatrixTip();
+
+  // PWA 安裝提示
+  if (deferredInstallPrompt && !state.installDismissed && !isStandalone()) {
+    document.getElementById('install-hint').classList.add('show');
+  }
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+}
+
+function renderToolCard(id) {
+  const t = catalog[id];
+  const s = state.toolStates[id] || { steps: [] };
+  const steps = s.steps || [];
+  const done = steps.length > 0 && steps.every(Boolean);
+  const doneSteps = steps.filter(Boolean).length;
+  const pct = steps.length ? Math.round(doneSteps * 100 / steps.length) : 0;
+  const reminderTag = s.reminderDate ? `<span class="reminder-badge">⏰ ${formatDateShort(s.reminderDate)}</span>` : '';
+  return `
+    <div class="tool-card ${done ? 'done' : ''} ${t.pinned ? 'pinned' : ''}" onclick="openTool('${id}')">
+      <div class="tool-emoji">${t.emoji}</div>
+      <div class="tool-info">
+        <p class="tool-title">${t.title}</p>
+        <p class="tool-meta">${t.meta}</p>
+        ${t.pinned ? '' : `<div class="tool-progress"><div class="tool-progress-bar" style="width:${pct}%"></div></div>`}
+        ${reminderTag}
+      </div>
+      <div class="tool-status ${done ? 'done' : ''}">${done ? '✓ 完成' : (t.pinned ? '📌' : `${doneSteps}/${steps.length}`)}</div>
+    </div>
+  `;
+}
+
+// ===== 產品矩陣推薦 =====
+function buildMatrixTip() {
+  const recs = [];
+  if (state.why === 'travel' || state.toolStates.flight?.steps?.some(Boolean)) {
+    recs.push('跟朋友一起來上海玩？試試 <a href="https://lzzts-web.vercel.app" target="_blank" rel="noopener">同游</a> 算帳分攤。');
+  }
+  if (state.why === 'life' || state.why === 'work' || state.why === 'study') {
+    recs.push('想找台灣味道？<a href="https://chdining.com" target="_blank" rel="noopener">初唤</a> 上海 3 間店 + 杭州 1 間。');
+  }
+  if (state.role === 'family' || state.duration === '5_10y' || state.duration === '10y_plus') {
+    recs.push('陪父母或關注長輩生活？看看 <a href="https://lohascard.com" target="_blank" rel="noopener">樂活卡卡</a> 熟齡活動平台。');
+  }
+  if (state.why === 'think' || state.duration === 'not_yet') {
+    recs.push('來大陸前先聽聽過來人？<strong>「滬漂的 40 歲台灣大叔」</strong> Podcast 7 集累積中。');
+  }
+  if (recs.length === 0) {
+    recs.push('跟朋友一起來上海玩？試試 <a href="https://lzzts-web.vercel.app" target="_blank" rel="noopener">同游</a> 記帳分攤。');
+    recs.push('想找台灣味道？<a href="https://chdining.com" target="_blank" rel="noopener">初唤</a> 4 間店等你。');
+  }
+  return `
+    <p class="matrix-tip-title">💡 你也許會用到</p>
+    ${recs.slice(0, 2).map(r => `<p style="margin: 6px 0 0;">${r}</p>`).join('')}
+  `;
+}
+
+// ===== Tool modal =====
+function openTool(id) {
+  const t = catalog[id];
+  if (!state.toolStates[id]) {
+    state.toolStates[id] = { steps: (t.steps || []).map(() => false), reminderDate: null, myWiki: [] };
+  }
+  const s = state.toolStates[id];
+  document.getElementById('modal-content').innerHTML = renderToolDetail(id, t, s);
+  document.getElementById('modal-backdrop').classList.add('show');
+  requestAnimationFrame(() => document.getElementById('modal').classList.add('show'));
+}
+
+function renderToolDetail(id, t, s) {
+  const steps = s.steps || [];
+  const doneCount = steps.filter(Boolean).length;
+  const pct = steps.length ? doneCount * 100 / steps.length : 0;
+
+  // 緊急卡用特殊版面（沒有 steps，只有直撥電話）
+  if (t.calls) {
+    return `
+      <div class="modal-header">
+        <div class="modal-emoji">${t.emoji}</div>
+        <div class="modal-title-block">
+          <p class="modal-title">${t.title}</p>
+          <p class="modal-meta">${t.meta}</p>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <p class="modal-section-title">📞 一鍵直撥</p>
+        <div class="call-list">
+          ${t.calls.map(c => `
+            <a class="call-btn" href="tel:${c.num.replace(/\\s/g,'')}">
+              <span class="call-emoji">${c.emoji}</span>
+              <div class="call-info">
+                <p class="call-name">${c.name}</p>
+                <p class="call-num">${c.num}</p>
+              </div>
+              <span class="call-icon">📞</span>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+
+      ${t.tips?.length ? `
+      <div class="modal-section">
+        <p class="modal-section-title">💡 老島民提醒</p>
+        ${t.tips.map(tip => `<div class="tip">${tip}</div>`).join('')}
+      </div>` : ''}
+
+      ${renderWikiSection(id, t)}
+
+      <a class="fb-bar" href="${FB_SEARCH(t.title)}" target="_blank" rel="noopener">
+        💬 想聊「${t.title}」？跳 FB「台灣人在上海」
+      </a>
+    `;
+  }
+
+  // 一般辦事卡
+  return `
+    <div class="modal-header">
+      <div class="modal-emoji">${t.emoji}</div>
+      <div class="modal-title-block">
+        <p class="modal-title">${t.title}</p>
+        <p class="modal-meta">⏱ ${t.est} · ${t.meta}</p>
+      </div>
+    </div>
+
+    <div class="progress-big"><div class="progress-big-bar" style="width:${pct}%"></div></div>
+    <p style="font-size:12px; color:var(--ink-soft); margin: 0 0 16px;">
+      進度 ${doneCount} / ${steps.length}
+    </p>
+
+    <div class="modal-section">
+      <p class="modal-section-title">步驟（可勾）</p>
+      ${steps.map((d, i) => `
+        <div class="step ${d ? 'done' : ''}" onclick="toggleStep('${id}', ${i})">
+          <div class="step-check"></div>
+          <div class="step-text">${t.steps[i]}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${t.materials?.length ? `
+    <div class="modal-section">
+      <p class="modal-section-title">📎 你需要準備</p>
+      <ul class="materials">
+        ${t.materials.map(m => `<li>${m}</li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    ${t.tips?.length ? `
+    <div class="modal-section">
+      <p class="modal-section-title">💡 老島民提醒</p>
+      ${t.tips.map(tip => `<div class="tip">${tip}</div>`).join('')}
+    </div>` : ''}
+
+    ${renderReminderSection(id, t, s)}
+
+    ${renderWikiSection(id, t)}
+
+    <a class="fb-bar" href="${FB_SEARCH(t.title)}" target="_blank" rel="noopener">
+      💬 想聊「${t.title}」？跳 FB「台灣人在上海」
+    </a>
+  `;
+}
+
+function renderReminderSection(id, t, s) {
+  const has = !!s.reminderDate;
+  const suggest = t.reminderSuggest;
+  return `
+    <div class="modal-section">
+      <p class="modal-section-title">⏰ 提醒設定</p>
+      ${has ? `
+        <div class="reminder-current">
+          <span>已設提醒：<strong>${formatDate(s.reminderDate)}</strong></span>
+          <button class="clear" onclick="clearReminder('${id}')">取消</button>
+        </div>` : ''}
+      ${suggest ? `
+        <button class="btn btn-ghost" style="margin-bottom: 10px;" onclick="setSuggestedReminder('${id}')">
+          建議：${suggest.label}
+        </button>` : ''}
+      <div class="reminder-row">
+        <div>
+          <label class="label">自訂日期</label>
+          <input type="date" id="reminder-input-${id}" min="${todayStr()}">
+        </div>
+        <button class="btn" onclick="setCustomReminder('${id}')">設定</button>
+      </div>
+      <p class="hint" style="margin: 8px 0 0;">當天會在 app 內顯示提醒。<span id="notif-status-${id}"></span></p>
+    </div>
+  `;
+}
+
+function renderWikiSection(id, t) {
+  const s = state.toolStates[id];
+  const seedWiki = (t.wiki || []).map(w => ({ ...w, seed: true }));
+  const myWiki = (s.myWiki || []).map(w => ({ ...w, mine: true }));
+  const all = [...myWiki, ...seedWiki];
+  return `
+    <div class="modal-section">
+      <p class="modal-section-title">📝 島民補充（Wiki）</p>
+      ${all.length ? all.map(w => `
+        <div class="wiki-item ${w.mine ? 'wiki-mine' : ''}">
+          <p class="wiki-quote">「${escapeHtml(w.q)}」</p>
+          <p class="wiki-meta">— ${escapeHtml(w.who || state.nick || '島民')} · ${escapeHtml(w.when || '剛剛')}</p>
+        </div>
+      `).join('') : '<p class="wiki-empty">還沒有補充。第一個補充的會被別人看到。</p>'}
+
+      <div id="wiki-form-${id}" class="wiki-form">
+        <textarea id="wiki-input-${id}" placeholder="只能補事實，限 200 字。例：派出所搬到 XX 路了 / 材料多一份 XX..." maxlength="200"></textarea>
+        <div class="btn-row">
+          <button class="btn" onclick="submitWiki('${id}')">送出</button>
+          <button class="btn btn-ghost" onclick="toggleWikiForm('${id}')">取消</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost" id="wiki-toggle-${id}" style="margin-top:10px;" onclick="toggleWikiForm('${id}')">+ 補充情報</button>
+      <p class="hint" style="margin:8px 0 0;">⚠️ Phase 1 補充存在本機，將來合併雲端時會詢問你要不要上傳。</p>
+    </div>
+  `;
+}
+
+function toggleWikiForm(id) {
+  const form = document.getElementById(`wiki-form-${id}`);
+  const btn = document.getElementById(`wiki-toggle-${id}`);
+  if (form.classList.contains('show')) {
+    form.classList.remove('show');
+    btn.textContent = '+ 補充情報';
+  } else {
+    form.classList.add('show');
+    btn.textContent = '收起';
+    setTimeout(() => document.getElementById(`wiki-input-${id}`).focus(), 50);
+  }
+}
+
+function submitWiki(id) {
+  const input = document.getElementById(`wiki-input-${id}`);
+  const text = input.value.trim();
+  if (text.length < 4) {
+    alert('至少 4 個字');
+    return;
+  }
+  state.toolStates[id].myWiki = state.toolStates[id].myWiki || [];
+  state.toolStates[id].myWiki.unshift({
+    q: text,
+    who: state.nick || '島民',
+    when: formatDateShort(new Date().toISOString()),
+  });
+  saveState();
+  openTool(id);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  setTimeout(() => document.getElementById('modal-backdrop').classList.remove('show'), 300);
+  renderHome();
+}
+
+function toggleStep(id, i) {
+  state.toolStates[id].steps[i] = !state.toolStates[id].steps[i];
+  saveState();
+  openTool(id); // 重新渲染
+}
+
+// ===== 提醒系統 =====
+function setSuggestedReminder(id) {
+  const t = catalog[id];
+  const sug = t.reminderSuggest;
+  let target;
+  if (sug.months) {
+    target = new Date();
+    target.setMonth(target.getMonth() + sug.months);
+  } else if (sug.dateOverride === 'next-march') {
+    target = new Date();
+    target.setFullYear(target.getFullYear() + (target.getMonth() >= 2 ? 1 : 0));
+    target.setMonth(2); // 三月
+    target.setDate(1);
+  }
+  state.toolStates[id].reminderDate = target.toISOString();
+  saveState();
+  askNotificationPermission();
+  openTool(id);
+}
+
+function setCustomReminder(id) {
+  const input = document.getElementById(`reminder-input-${id}`);
+  const val = input.value;
+  if (!val) {
+    alert('請選日期');
+    return;
+  }
+  const d = new Date(val + 'T09:00:00');
+  if (d.getTime() < Date.now()) {
+    alert('提醒日期要晚於今天');
+    return;
+  }
+  state.toolStates[id].reminderDate = d.toISOString();
+  saveState();
+  askNotificationPermission();
+  openTool(id);
+}
+
+function clearReminder(id) {
+  state.toolStates[id].reminderDate = null;
+  saveState();
+  openTool(id);
+}
+
+function askNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function checkOverdueReminders() {
+  const now = Date.now();
+  const fired = [];
+  Object.entries(state.toolStates).forEach(([id, s]) => {
+    if (s.reminderDate && new Date(s.reminderDate).getTime() <= now && !s.reminderFired) {
+      fired.push({ id, title: catalog[id]?.title });
+      s.reminderFired = true;
+    }
+  });
+  if (fired.length) {
+    saveState();
+    fired.forEach(f => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('島民提醒到了 ⏰', {
+          body: `${f.title} — 今天該辦了`,
+          icon: 'icons/icon-192.png',
+          tag: 'shenzhou-' + f.id,
+        });
+      }
+    });
+    if (fired.length && document.getElementById('screen-home').classList.contains('active')) {
+      setTimeout(() => alert('⏰ 你設的提醒到了：\n' + fired.map(f => '· ' + f.title).join('\n')), 500);
+    }
+  }
+}
+
+// ===== utils =====
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+function formatDate(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+}
+function formatDateShort(iso) {
+  const d = new Date(iso);
+  return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+}
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ===== onboarding 重置 =====
+function confirmRestart() {
+  if (confirm('重新填一次 Onboarding 嗎？\n\n（你的卡片進度、提醒、補充都會保留，只是重新走 3 個問題）')) {
+    state.onboarded = false;
+    saveState();
+    document.querySelectorAll('.option, .chip').forEach(el => el.classList.remove('selected'));
+    document.getElementById('nick').value = '';
+    document.querySelectorAll('.btn[id^="btn-"]').forEach(b => b.disabled = true);
+    goTo('screen-welcome');
+  }
+}
+
+// ===== PWA install =====
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (state.onboarded && !state.installDismissed) {
+    document.getElementById('install-hint').classList.add('show');
+  }
+});
+
+function triggerInstall() {
+  if (!deferredInstallPrompt) {
+    alert('Safari / iOS：點瀏覽器的「分享 → 加到主畫面」。\nAndroid Chrome：選單 →「安裝應用程式」。');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    document.getElementById('install-hint').classList.remove('show');
+  });
+}
+
+function dismissInstall() {
+  state.installDismissed = true;
+  saveState();
+  document.getElementById('install-hint').classList.remove('show');
+}
+
+// ===== service worker =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW reg fail', err));
+  });
+}
+
+// ===== 啟動 =====
+(function init(){
+  const ok = loadState();
+
+  // 還原 onboarding 選項視覺
+  if (state.why) {
+    const btn = document.querySelector(`#screen-q1 .option[data-value="${state.why}"]`);
+    if (btn) btn.classList.add('selected');
+    document.getElementById('btn-q1').disabled = false;
+  }
+  if (state.role) {
+    const btn = document.querySelector(`#screen-q2 .option[data-value="${state.role}"]`);
+    if (btn) btn.classList.add('selected');
+    document.getElementById('btn-q2').disabled = false;
+  }
+  if (state.duration) {
+    const btn = document.querySelector(`#screen-q3 .option[data-value="${state.duration}"]`);
+    if (btn) btn.classList.add('selected');
+    document.getElementById('btn-q3').disabled = false;
+  }
+  if (state.district) {
+    const chip = document.querySelector(`.chip[data-value="${state.district}"]`);
+    if (chip) chip.classList.add('selected');
+  }
+  if (state.nick) document.getElementById('nick').value = state.nick;
+  checkProfile();
+
+  if (ok) {
+    goTo('screen-home');
+    renderHome();
+  }
+
+  // 進入時檢查到期提醒
+  checkOverdueReminders();
+
+  // 鍵盤 esc 關 modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('modal').classList.contains('show')) {
+      closeModal();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

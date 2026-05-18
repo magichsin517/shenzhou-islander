@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>神州上的島民｜Onboarding Demo</title>
+<style>
+  :root {
+    --sea: #3A7FB8;
+    --sea-dark: #2A5F8C;
+    --sand: #D4A574;
+    --sand-dark: #B08754;
+    --cream: #FAF6EF;
+    --ink: #2C2823;
+    --ink-soft: #5F5A52;
+    --line: #E8E0D2;
+    --card-bg: #FFFFFF;
+    --shadow: 0 2px 12px rgba(60,40,20,0.06);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.55;
+  }
+  .app {
+    max-width: 440px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 24px 20px 40px;
+    position: relative;
+  }
+  .progress {
+    display: flex; gap: 6px;
+    margin-bottom: 28px;
+  }
+  .progress span {
+    flex: 1; height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+  .progress span.active { background: var(--sea); }
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.3px; }
+  .subtitle { color: var(--ink-soft); font-size: 15px; margin: 0 0 28px; }
+  .hint { color: var(--ink-soft); font-size: 13px; margin: 12px 0 24px; }
+  .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .option {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 12px;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  .option:hover { border-color: var(--sea); }
+  .option.selected {
+    border-color: var(--sea);
+    background: rgba(58,127,184,0.06);
+  }
+  .option .emoji { font-size: 22px; flex-shrink: 0; }
+  .option .text { flex: 1; }
+  .option .desc { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .btn {
+    background: var(--sea);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--sea-dark); }
+  .btn:disabled { background: var(--line); color: var(--ink-soft); cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--ink-soft); }
+  input[type="text"], textarea {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--sea);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .label { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; display: block; }
+  /* 歡迎頁 */
+  .welcome {
+    padding: 80px 0 40px;
+    text-align: center;
+  }
+  .welcome .logo {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+  .welcome h1 {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+  .welcome .quote {
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-bottom: 60px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .welcome .quote::before { content: "「"; }
+  .welcome .quote::after { content: "」"; }
+  /* 島民卡 */
+  .card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    border: 1.5px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, var(--sea) 0%, var(--sand) 100%);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .stage-badge {
+    background: rgba(58,127,184,0.1);
+    color: var(--sea-dark);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .card-id { color: var(--ink-soft); font-size: 12px; }
+  .card-name {
+    font-size: 22px; font-weight: 700; margin: 0 0 4px;
+  }
+  .card-handle { color: var(--ink-soft); font-size: 14px; margin: 0 0 16px; }
+  .card-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .card-row { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+  .card-row .icon { font-size: 18px; }
+  .card-quote {
+    background: var(--cream);
+    border-left: 3px solid var(--sand);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 32px 0 14px;
+  }
+  .mini-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .mini-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sea), var(--sand));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .mini-info { flex: 1; min-width: 0; }
+  .mini-name { font-size: 15px; font-weight: 600; margin: 0 0 2px; }
+  .mini-meta { font-size: 12px; color: var(--ink-soft); margin: 0; }
+  .mini-tag {
+    background: rgba(212,165,116,0.15);
+    color: var(--sand-dark);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .footer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .footer-actions .btn { flex: 1; }
+  /* 完成頁 emoji 動畫 */
+  .celebration {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .celebration .big-emoji {
+    font-size: 56px;
+    animation: bounce 0.6s ease;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  /* tag chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .chip {
+    background: var(--card-bg);
+    border: 1.5px solid var(--line);
+    border-radius: 100px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .chip.selected {
+    border-color: var(--sea);
+    background: rgba(58,127,184,0.08);
+    color: var(--sea-dark);
+  }
+  .small-link {
+    display: block;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin-top: 16px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .demo-tag {
+    position: fixed;
+    top: 12px; right: 12px;
+    background: var(--sand);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-tag">DEMO v0.1</div>
+
+<div class="app">
+
+  <!-- 歡迎頁 -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome">
+      <div class="logo">🏝️</div>
+      <h1>神州上的島民</h1>
+      <p class="quote">在這座島之外，還有一座島</p>
+      <button class="btn" onclick="goTo('screen-q1')">開始</button>
+      <p class="hint" style="margin-top: 24px; text-align: center;">3 個問題，30 秒。我們想先認識你。</p>
+    </div>
+  </div>
+
+  <!-- 問題 1 -->
+  <div class="screen" id="screen-q1">
+    <div class="progress">
+      <span class="active"></span><span></span><span></span><span></span>
+    </div>
+    <h2>第 1 題 / 共 4 題</h2>
+    <h1>你為什麼來？</h1>
+    <p class="subtitle">不管你是來玩、來生活，還是還在猶豫——都歡迎。</p>
+    <div class="options" data-question="why">
+      <button class="option" data-value="travel">
+        <span class="emoji">🎒</span>
+        <span class="text"><div>來玩</div><div class="desc">短期旅遊 / 出差 / 探親</div></span>
+      </button>
+      <button class="option" data-value="life">
+        <span class="emoji">🏠</span>
+        <span class="text"><div>來生活</div><div class="desc">陪伴 / 婚姻 / 探索</div></span>
+      </button>
+      <button class="option" data-value="work">
+        <span class="emoji">💼</span>
+        <span class="text"><div>來工作</div><div class="desc">外派 / 求職 / 創業</div></span>
+      </button>
+      <button class="option" data-value="study">
+        <span class="emoji">🎓</span>
+        <span class="text"><div>來唸書</div><div class="desc">交換 / 學位</div></span>
+      </button>
+      <button class="option" data-value="think">
+        <span class="emoji">🤔</span>
+        <span class="text"><div>還在想</div><div class="desc">不確定要不要 / 怎麼來</div></span>
+      </button>
+    </div>
+    <button class="btn" id="btn-q1" disabled onclick="goTo('screen-q2')">繼續</button>
+  </div>
+
+  <!-- 問題 2 -->
+  <div class="screen" id="screen-q2">
+    <div class="progress">
+      <span class="active"></span><span class="active"></span><span></span><span></span>
+    </div>
+    <h2>第 2 題 / 共 4 題</h2>
+    <h1>你現在是？</h1>
+    <p class="subtitle">這會決定你先看到誰的內容。</p>
+    <div class="options" data-question="role">
+      <button class="option" data-value="student"><span class="emoji">🎓</span><span class="text"><div>學生</div><div class="desc">交換生 / 研究生 / 大學</div></span></button>
+      <button class="option" data-value="employee"><span class="emoji">💼</span><span class="text"><div>上班族</div><div class="desc">外商 / 中資 / 國企 / 創業公司</div></span></button>
+      <button class="option" data-value="founder"><span class="emoji">🚀</span><span class="text"><div>創業者 / 自由業</div><div class="desc">自己幹 / 接案</div></span></button>
+      <button class="option" data-value="family"><span class="emoji">🏠</span><span class="text"><div>陪伴者</div><div class="desc">陪配偶 / 陪子女 / 陪父母</div></span></button>
+      <button class="option" data-value="gap"><span class="emoji">🌿</span><span class="text"><div>Gap / 退休 / 在想下一步</div></span></button>
+      <button class="option" data-value="planning"><span class="emoji">🛬</span><span class="text"><div>還沒來</div><div class="desc">正在計劃 / 辦手續</div></span></button>
+    </div>
+    <button class="btn" id="btn-q2" disabled onclick="goTo('screen-q3')">繼續</button>
+  </div>
+
+  <!-- 問題 3 -->
+  <div class="screen" id="screen-q3">
+    <div class="progress">
+      <span class="active"></span><span class="active"></span><span class="active"></span><span></span>
+    </div>
+    <h2>第 3 題 / 共 4 題</h2>
+    <h1>你來多久了？</h1>
+    <p class="subtitle">老島民會優先看到你的問題。</p>
+    <div class="options" data-question="duration">
+      <button class="option" data-value="not_yet"><span class="emoji">⏳</span><span class="text"><div>還沒來</div><div class="desc">計劃中</div></span></button>
+      <button class="option" data-value="0_6m"><span class="emoji">🌱</span><span class="text"><div>0–6 個月</div><div class="desc">新島民</div></span></button>
+      <button class="option" data-value="6m_2y"><span class="emoji">🌿</span><span class="text"><div>6 個月–2 年</div><div class="desc">熟悉中</div></span></button>
+      <button class="option" data-value="2_5y"><span class="emoji">🌳</span><span class="text"><div>2–5 年</div><div class="desc">在地化中</div></span></button>
+      <button class="option" data-value="5_10y"><span class="emoji">🌲</span><span class="text"><div>5–10 年</div><div class="desc">深度滬漂</div></span></button>
+      <button class="option" data-value="10y_plus"><span class="emoji">🏔</span><span class="text"><div>10 年以上</div><div class="desc">老島民</div></span></button>
+    </div>
+    <button class="btn" id="btn-q3" disabled onclick="goTo('screen-profile')">繼續</button>
+  </div>
+
+  <!-- 補資料 -->
+  <div class="screen" id="screen-profile">
+    <div class="progress">
+      <span class="active"></span><span class="active"></span><span class="active"></span><span class="active"></span>
+    </div>
+    <h2>第 4 題 / 共 4 題</h2>
+    <h1>幫自己取個島民名字</h1>
+    <p class="subtitle">這張島民卡會出現在你的個人頁、回答下方、活動報名表。</p>
+
+    <label class="label">暱稱（2-10 字）</label>
+    <input type="text" id="nick" maxlength="10" placeholder="例：小美 / 阿凱 / 老王" oninput="checkProfile()">
+
+    <label class="label">一句話自介（最多 30 字）</label>
+    <textarea id="bio" maxlength="30" placeholder="例：正在學上海話，求飯友" oninput="checkProfile()"></textarea>
+
+    <label class="label">常駐區（可改）</label>
+    <div class="chips" data-question="district">
+      <span class="chip" data-value="徐匯">徐匯</span>
+      <span class="chip" data-value="靜安">靜安</span>
+      <span class="chip" data-value="長寧">長寧</span>
+      <span class="chip" data-value="黃浦">黃浦</span>
+      <span class="chip" data-value="浦東">浦東</span>
+      <span class="chip" data-value="虹口">虹口</span>
+      <span class="chip" data-value="楊浦">楊浦</span>
+      <span class="chip" data-value="閔行">閔行</span>
+      <span class="chip" data-value="其他">其他</span>
+    </div>
+
+    <label class="label" style="margin-top: 20px;">想聊的話題（可選 1-5 個）</label>
+    <div class="chips" data-question="tags">
+      <span class="chip" data-value="找工作">找工作</span>
+      <span class="chip" data-value="辦居住證">辦居住證</span>
+      <span class="chip" data-value="租房">租房</span>
+      <span class="chip" data-value="美食">美食</span>
+      <span class="chip" data-value="健康/醫療">健康/醫療</span>
+      <span class="chip" data-value="親子">親子</span>
+      <span class="chip" data-value="台灣帶來的東西">台灣帶來的東西</span>
+      <span class="chip" data-value="創業">創業</span>
+      <span class="chip" data-value="找飯友">找飯友</span>
+      <span class="chip" data-value="運動健身">運動健身</span>
+      <span class="chip" data-value="文藝/展覽">文藝/展覽</span>
+      <span class="chip" data-value="銀行/稅務">銀行/稅務</span>
+    </div>
+
+    <button class="btn" id="btn-profile" disabled onclick="generateCard()" style="margin-top: 24px;">生成我的島民卡</button>
+  </div>
+
+  <!-- 完成 + 島民卡 -->
+  <div class="screen" id="screen-done">
+    <div class="celebration">
+      <div class="big-emoji">🎉</div>
+      <h1 style="margin-top: 12px;">歡迎來到島民</h1>
+      <p class="subtitle">這是你的島民卡。長按可儲存。</p>
+    </div>
+
+    <div class="card" id="islander-card">
+      <!-- JS 填入 -->
+    </div>
+
+    <div class="section-title">📍 跟你最像的島民</div>
+    <div id="similar-list"></div>
+
+    <div class="section-title">🌳 能幫你的老島民</div>
+    <div id="mentor-list"></div>
+
+    <div class="footer-actions">
+      <button class="btn btn-ghost" onclick="restart()">重新填一次</button>
+      <button class="btn" onclick="alert('Demo 結束！\n\n下一步：去『島民答疑』看別人在問什麼，或自己發第一個問題。')">進入島民世界</button>
+    </div>
+
+    <p class="small-link" onclick="showDebug()">查看後台資料（debug）</p>
+    <pre id="debug" style="display:none; background:var(--card-bg); padding:14px; border-radius:10px; font-size:11px; overflow-x:auto; margin-top:12px; border: 1px solid var(--line);"></pre>
+  </div>
+
+</div>
+
+<script>
+  // ===== 狀態 =====
+  const state = {
+    why: null,
+    role: null,
+    duration: null,
+    district: null,
+    tags: [],
+    nick: '',
+    bio: ''
+  };
+
+  // ===== 假資料：島民池（用來 demo 配對結果） =====
+  const islanders = [
+    { nick: '阿凱',   stage: '老島民', years: 8, role: 'founder',  why: 'work',  district: '靜安', tags: ['創業','找飯友'], bio: '8 年滬漂，賣台灣調味料' },
+    { nick: '小美',   stage: '熟悉中', years: 1, role: 'employee', why: 'work',  district: '徐匯', tags: ['找工作','租房'], bio: '剛從台北外派來的設計師' },
+    { nick: 'Mia',    stage: '老島民', years: 6, role: 'employee', why: 'work',  district: '浦東', tags: ['親子','美食'],   bio: '帶兩個孩子，徐家匯小學' },
+    { nick: '老王',   stage: '深度滬漂', years: 12, role: 'founder', why: 'work', district: '長寧', tags: ['創業','銀行/稅務'], bio: '上海開廣告公司，問我稅' },
+    { nick: '阿銘',   stage: '新島民', years: 0.2, role: 'student', why: 'study', district: '楊浦', tags: ['找飯友'],       bio: '復旦交換半年，找飯局' },
+    { nick: '雅婷',   stage: '熟悉中', years: 1.5, role: 'family',  why: 'life',  district: '閔行', tags: ['親子','美食'],   bio: '陪先生來，正在學上海話' },
+    { nick: '阿傑',   stage: '老島民', years: 7,  role: 'employee', why: 'work',  district: '徐匯', tags: ['找工作','運動健身'], bio: '台幹 7 年，跑過 3 家公司' },
+    { nick: '志強',   stage: '深度滬漂', years: 15, role: 'founder', why: 'work', district: '黃浦', tags: ['創業','美食','辦居住證'], bio: '15 年，我什麼都辦過' },
+    { nick: 'Cindy',  stage: '熟悉中', years: 1, role: 'employee', why: 'life', district: '靜安', tags: ['美食','文藝/展覽'], bio: '在做展覽策劃' },
+    { nick: '小光',   stage: '新島民', years: 0.5, role: 'planning', why: 'work', district: '徐匯', tags: ['辦居住證','租房'], bio: '剛來 2 個月，求各種指導' }
+  ];
+
+  // ===== 互動 =====
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // 選項點擊
+  document.querySelectorAll('.options').forEach(group => {
+    const q = group.dataset.question;
+    group.querySelectorAll('.option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        group.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        state[q] = opt.dataset.value;
+        if (q === 'why') document.getElementById('btn-q1').disabled = false;
+        if (q === 'role') document.getElementById('btn-q2').disabled = false;
+        if (q === 'duration') document.getElementById('btn-q3').disabled = false;
+      });
+    });
+  });
+
+  // chip 點擊
+  document.querySelectorAll('.chips').forEach(group => {
+    const q = group.dataset.question;
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (q === 'district') {
+          group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          state.district = chip.dataset.value;
+        } else if (q === 'tags') {
+          const v = chip.dataset.value;
+          if (chip.classList.contains('selected')) {
+            chip.classList.remove('selected');
+            state.tags = state.tags.filter(t => t !== v);
+          } else if (state.tags.length < 5) {
+            chip.classList.add('selected');
+            state.tags.push(v);
+          }
+        }
+        checkProfile();
+      });
+    });
+  });
+
+  function checkProfile() {
+    state.nick = document.getElementById('nick').value.trim();
+    state.bio = document.getElementById('bio').value.trim();
+    const ok = state.nick.length >= 2 && state.bio.length >= 5 && state.district && state.tags.length >= 1;
+    document.getElementById('btn-profile').disabled = !ok;
+  }
+
+  // ===== 卡片生成 =====
+  function stageOf(duration) {
+    const map = {
+      not_yet:  { icon: '⏳', name: '準備中', short: '準備中' },
+      '0_6m':   { icon: '🌱', name: '新島民', short: '新島民' },
+      '6m_2y':  { icon: '🌿', name: '熟悉中', short: '熟悉中' },
+      '2_5y':   { icon: '🌳', name: '在地化', short: '在地化' },
+      '5_10y':  { icon: '🌲', name: '深度滬漂', short: '深度滬漂' },
+      '10y_plus': { icon: '🏔', name: '老島民', short: '老島民' }
+    };
+    return map[duration] || map['0_6m'];
+  }
+  function whyText(w) {
+    return ({ travel: '來玩', life: '來生活', work: '來工作', study: '來唸書', think: '還在想' })[w] || '';
+  }
+  function roleText(r) {
+    return ({ student:'學生', employee:'上班族', founder:'創業者/自由業', family:'陪伴者', gap:'Gap/退休', planning:'準備中' })[r] || '';
+  }
+  function durationText(d) {
+    return ({ not_yet:'準備中', '0_6m':'< 6 個月', '6m_2y':'6 個月–2 年', '2_5y':'2–5 年', '5_10y':'5–10 年', '10y_plus':'10 年+' })[d] || '';
+  }
+  function avatarChar(name) {
+    return name ? name[name.length-1] : '?';
+  }
+
+  function generateCard() {
+    const stage = stageOf(state.duration);
+    const id = 1000 + Math.floor(Math.random() * 9000);
+
+    document.getElementById('islander-card').innerHTML = `
+      <div class="card-header">
+        <span class="stage-badge">${stage.icon} ${stage.name} · 第 ${id} 號</span>
+      </div>
+      <h2 class="card-name">${escapeHtml(state.nick)}</h2>
+      <p class="card-handle">@${pinyinish(state.nick)}_${id}</p>
+      <div class="card-rows">
+        <div class="card-row"><span class="icon">💼</span><span>${roleText(state.role)} · ${whyText(state.why)}</span></div>
+        <div class="card-row"><span class="icon">${stage.icon}</span><span>在上海 ${durationText(state.duration)}</span></div>
+        <div class="card-row"><span class="icon">📍</span><span>常駐：${state.district}</span></div>
+      </div>
+      <div class="card-quote">${escapeHtml(state.bio)}</div>
+    `;
+
+    renderSimilar();
+    renderMentors();
+    goTo('screen-done');
+  }
+
+  function renderSimilar() {
+    // 跟你像 = 同 role 或同 district 或 tag 重疊
+    const scored = islanders.map(p => {
+      let s = 0;
+      if (p.role === state.role) s += 3;
+      if (p.district === state.district) s += 2;
+      const overlap = p.tags.filter(t => state.tags.includes(t)).length;
+      s += overlap;
+      return { p, s };
+    }).filter(x => x.s > 0).sort((a,b) => b.s - a.s).slice(0, 3);
+
+    const html = scored.map(({p}) => miniCard(p, p.role === state.role ? '同類' : '同區')).join('');
+    document.getElementById('similar-list').innerHTML = html || '<p class="hint">還沒有跟你像的人，去發第一個問題吧。</p>';
+  }
+  function renderMentors() {
+    // 能幫你的老島民 = years >= 5 且 (district 同 或 tags 有重疊)
+    const scored = islanders.filter(p => p.years >= 5).map(p => {
+      let s = 0;
+      if (p.district === state.district) s += 2;
+      const overlap = p.tags.filter(t => state.tags.includes(t)).length;
+      s += overlap * 2;
+      s += p.years / 5;
+      return { p, s };
+    }).sort((a,b) => b.s - a.s).slice(0, 3);
+
+    const html = scored.map(({p}) => miniCard(p, `${p.years} 年`)).join('');
+    document.getElementById('mentor-list').innerHTML = html;
+  }
+  function miniCard(p, tag) {
+    return `
+      <div class="mini-card">
+        <div class="mini-avatar">${avatarChar(p.nick)}</div>
+        <div class="mini-info">
+          <p class="mini-name">${p.nick}</p>
+          <p class="mini-meta">${p.district} · ${roleText(p.role)} · ${p.bio}</p>
+        </div>
+        <span class="mini-tag">${tag}</span>
+      </div>
+    `;
+  }
+
+  function restart() {
+    Object.keys(state).forEach(k => { state[k] = (k === 'tags') ? [] : (typeof state[k] === 'string' ? '' : null); });
+    document.querySelectorAll('.option, .chip').forEach(el => el.classList.remove('selected'));
+    document.getElementById('nick').value = '';
+    document.getElementById('bio').value = '';
+    document.querySelectorAll('.btn[id^="btn-"]').forEach(b => b.disabled = true);
+    goTo('screen-welcome');
+  }
+  function showDebug() {
+    const el = document.getElementById('debug');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    el.textContent = JSON.stringify(state, null, 2);
+  }
+
+  // utils
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function pinyinish(s) {
+    // 簡化版：取第一個字 + 隨機字母（demo 用）
+    if (!s) return 'islander';
+    const a = 'aeiou';
+    return 'i' + s.length + a[s.charCodeAt(0) % 5];
+  }
+</script>
+
+</body>
+</html>
