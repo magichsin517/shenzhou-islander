@@ -1,7 +1,7 @@
 // 神州上的島民｜Service Worker
 // 策略：app shell 預快取 + 動態快取（cache-first，過期才回網路）
 // 版號改變 → 自動清舊快取
-const VERSION = 'shenzhou-v0.3.1';
+const VERSION = 'shenzhou-v0.3.2';
 const SHELL_CACHE = `${VERSION}-shell`;
 
 const SHELL = [

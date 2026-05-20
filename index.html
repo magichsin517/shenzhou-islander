@@ -811,7 +811,7 @@
 
 <script>
 // ===== 版本 / 常數 =====
-const APP_VERSION = '0.3.1';
+const APP_VERSION = '0.3.2';
 const LS_KEY = 'shenzhou_islander_state_v1';
 const FB_GROUP_URL = 'https://www.facebook.com/groups/118772818169035';
 const FB_SEARCH = (q) => `${FB_GROUP_URL}/search/?query=${encodeURIComponent(q)}`;
@@ -866,29 +866,53 @@ const catalog = {
       { q: '上海有「12345 市民熱線」可諮詢非緊急問題', who: '永興', when: '本週' },
     ]
   },
-  rent_doc: {
-    emoji: '🪪', title: '居住證辦理', meta: '徐匯/靜安 · 30-45 天', est: '30-45 天',
+  rent_register: {
+    emoji: '🏠', title: '臨時居住登記證', meta: '當天搞定 · 派出所/居委會', est: '30 分鐘',
     steps: [
-      '準備材料（見下方）',
-      '請房東到派出所做租賃備案',
-      '帶資料到派出所遞件',
+      '帶台胞證 + 影本 + 租賃合同',
+      '到房屋所在地的派出所或居委會（不同區規定不同）',
+      '填臨時住宿登記表',
+      '當場登記完成（一般無需等候）',
+      '設提醒：1 年後重登',
+    ],
+    materials: ['台胞證 + 影本', '租賃合同', '房東身份證影本（部分區要求）'],
+    tips: [
+      '每年到期要重登——這是基本義務，跟「台灣居民居住證」是兩件不同的事',
+      '離境後再入境也要重登（哪怕只是回台一週）',
+      '搬家 / 換房 也要重登',
+      '不同區規定不一樣，先打電話問該轄區派出所',
+    ],
+    wiki: [
+      { q: '由社團管理員 Hazel.W 共建：跟「台灣居民居住證」是兩個東西，別搞混', who: 'Hazel.W', when: '今天' },
+    ],
+    reminderSuggest: { label: '1 年後重登', months: 12 },
+  },
+  rent_doc: {
+    emoji: '🪪', title: '台灣居民居住證（卡式）', meta: '徐匯/靜安 · 30-45 天', est: '30-45 天',
+    steps: [
+      '確認自己符合 3 折 1 條件（見下方材料）',
+      '準備材料',
+      '線上預約派出所窗口（省一半時間）',
+      '帶資料到派出所遞件（不需要房東到場）',
       '等待制證（7-15 天）',
       '領證',
-      '設提醒：3 年後年審',
+      '設提醒：5 年後換證',
     ],
-    materials: ['台胞證 + 影本', '房屋租賃合同（網簽版）', '1 寸照 2 張', '房東身份證影本'],
+    materials: ['台胞證 + 影本', '3 折 1 證明任一：①6 個月以上租賃合同 / ②工作證明 / ③在學證明', '1 寸照 2 張'],
     tips: [
+      '完全不需要房東到場——這是跟「臨時居住登記證」的關鍵差別',
+      '3 折 1 任一即可：有工作用工作證明、學生用在學證明、其餘走租賃合同',
+      '5 年到期換證，不是年審',
       '旺季（9-10 月）會排隊，避開更輕鬆',
       '徐匯派出所最快、靜安最慢——可以挑',
-      '房東不配合的話，找有經驗的房屋仲介幫忙',
       '線上預約再去現場，省一半時間',
     ],
     wiki: [
-      { q: '2026 年起需要房東本人到場一次', who: '阿凱', when: '上週' },
+      { q: '由社團管理員 Hazel.W 共建修正：3 折 1 條件 + 5 年換證 + 完全不需要房東', who: 'Hazel.W', when: '今天' },
       { q: '徐匯派出所搬到漕溪北路了', who: 'Mia', when: '2 週前' },
       { q: '現在可線上預約，省 1 小時排隊', who: '老王', when: '1 個月前' },
     ],
-    reminderSuggest: { label: '3 年後年審', months: 36 },
+    reminderSuggest: { label: '5 年後換證', months: 60 },
   },
   phone: {
     emoji: '📱', title: '手機卡開戶', meta: '當天搞定', est: '1-2 小時',
@@ -1084,13 +1108,13 @@ function buildToolbox() {
   if (why === 'travel') {
     cards = ['sos', 'flight'];
   } else if (why === 'think' || dur === 'not_yet') {
-    cards = ['sos', 'rent_doc', 'phone', 'bank', 'alipay'];
+    cards = ['sos', 'rent_register', 'rent_doc', 'phone', 'bank', 'alipay'];
   } else if (dur === '5_10y' || dur === '10y_plus') {
     // 老島民簡化
     cards = ['sos', 'pass_renew', 'tax', 'flight'];
   } else {
     // 來生活 / 工作 / 唸書 → 完整 8-12 張
-    cards = ['sos', 'rent_doc', 'phone', 'bank', 'alipay', 'rent', 'medical', 'flight'];
+    cards = ['sos', 'rent_register', 'rent_doc', 'phone', 'bank', 'alipay', 'rent', 'medical', 'flight'];
   }
   // 工作 / 創業者加個稅
   if ((role === 'employee' || role === 'founder') && !cards.includes('tax')) cards.push('tax');
@@ -1100,8 +1124,9 @@ function buildToolbox() {
   if ((dur === '2_5y' || dur === '5_10y' || dur === '10y_plus') && !cards.includes('pass_renew')) {
     cards.push('pass_renew');
   }
-  // 學生加居住證 + 銀行
+  // 學生加居住證（兩種都要）+ 銀行
   if (role === 'student') {
+    if (!cards.includes('rent_register')) cards.push('rent_register');
     if (!cards.includes('rent_doc')) cards.push('rent_doc');
     if (!cards.includes('bank')) cards.push('bank');
   }
